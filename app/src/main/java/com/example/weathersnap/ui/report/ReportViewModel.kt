@@ -2,6 +2,7 @@ package com.example.weathersnap.ui.report
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.weathersnap.data.local.entity.ReportEntity
@@ -39,17 +40,22 @@ class ReportViewModel @Inject constructor(
 
     fun processCapturedImage(context: Context, uri: Uri) {
         viewModelScope.launch {
-            val originalFile = File(uri.path!!)
-            val originalSize = ImageUtils.getReadableFileSize(originalFile)
-            
-            val compressedFile = ImageUtils.compressImage(context, uri)
-            val compressedSize = ImageUtils.getReadableFileSize(compressedFile)
-            
-            _uiState.value = _uiState.value.copy(
-                imagePath = compressedFile.absolutePath,
-                originalSize = originalSize,
-                compressedSize = compressedSize
-            )
+            try {
+                val path = uri.path ?: return@launch
+                val originalFile = File(path)
+                val originalSize = if (originalFile.exists()) ImageUtils.getReadableFileSize(originalFile) else "Unknown"
+                
+                val compressedFile = ImageUtils.compressImage(context, uri)
+                val compressedSize = ImageUtils.getReadableFileSize(compressedFile)
+                
+                _uiState.value = _uiState.value.copy(
+                    imagePath = compressedFile.absolutePath,
+                    originalSize = originalSize,
+                    compressedSize = compressedSize
+                )
+            } catch (e: Exception) {
+                Log.e("ReportViewModel", "Failed to process image", e)
+            }
         }
     }
 
