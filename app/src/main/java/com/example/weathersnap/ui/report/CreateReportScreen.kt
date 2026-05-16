@@ -75,19 +75,45 @@ fun CreateReportScreen(
         SectionCard {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(text = weather.cityName, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = LightText)
-                    Text(text = weather.condition, fontSize = 13.sp, color = MutedText)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = weather.cityName,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = LightText,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = weather.condition.replace("+", " ").trim(),
+                        fontSize = 13.sp,
+                        color = MutedText,
+                        maxLines = 2,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        lineHeight = 16.sp
+                    )
                 }
-                Text(
-                    text = weather.temperature,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = LimeGreen
-                )
+                
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF4A4B1A))
+                ) {
+                    Text(
+                        text = weather.temperature,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = LimeGreen,
+                        modifier = Modifier
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                            .widthIn(min = 48.dp),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        maxLines = 1
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(12.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {

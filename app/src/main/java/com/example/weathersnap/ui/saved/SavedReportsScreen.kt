@@ -96,7 +96,7 @@ fun ReportItem(report: ReportEntity) {
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(text = report.cityName, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = LightText)
-                    Text(text = report.condition, fontSize = 13.sp, color = MutedText)
+                    Text(text = report.condition.replace("+", " ").trim(), fontSize = 13.sp, color = MutedText)
                     val date = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(Date(report.timestamp))
                     Text(text = date, fontSize = 11.sp, color = MutedText.copy(alpha = 0.7f))
                 }

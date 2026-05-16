@@ -145,13 +145,27 @@ fun WeatherDetailCard(
     SectionCard {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text(text = weather.cityName, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = LightText)
-                Text(text = weather.condition, fontSize = 14.sp, color = MutedText)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = weather.cityName,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = LightText,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                )
+                Text(
+                    text = weather.condition.replace("+", " ").trim(),
+                    fontSize = 14.sp,
+                    color = MutedText,
+                    lineHeight = 18.sp
+                )
             }
+            
+            Spacer(modifier = Modifier.width(16.dp))
+
             Card(
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF4A4B1A))
@@ -161,7 +175,8 @@ fun WeatherDetailCard(
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = LimeGreen,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    maxLines = 1
                 )
             }
         }
