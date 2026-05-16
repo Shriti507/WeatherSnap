@@ -12,16 +12,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.weathersnap.R
 import com.example.weathersnap.data.model.WeatherDomainModel
 import com.example.weathersnap.ui.components.*
 import com.example.weathersnap.ui.theme.*
-
-import androidx.compose.ui.res.stringResource
-import com.example.weathersnap.R
 
 @Composable
 fun WeatherScreen(
@@ -66,12 +67,15 @@ fun WeatherScreen(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color.Transparent,
                         unfocusedBorderColor = Color.Transparent,
-                        cursorColor = LimeGreen
+                        cursorColor = LimeGreen,
+                        focusedTextColor = LightText,
+                        unfocusedTextColor = LightText
                     ),
-                    placeholder = { Text(stringResource(R.string.search_placeholder), color = MutedText.copy(alpha = 0.5f)) }
+                    placeholder = { Text(stringResource(R.string.search_placeholder), color = MutedText.copy(alpha = 0.5f)) },
+                    singleLine = true
                 )
                 Button(
-                    onClick = { /* ViewModel handles it via debounce */ },
+                    onClick = { /* Auto-handled */ },
                     colors = ButtonDefaults.buttonColors(containerColor = LimeGreen.copy(alpha = 0.3f)),
                     shape = RoundedCornerShape(20.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
@@ -87,6 +91,7 @@ fun WeatherScreen(
             )
         }
 
+        // Animated city suggestions
         AnimatedVisibility(
             visible = suggestions.isNotEmpty(),
             enter = fadeIn() + expandVertically(),
@@ -114,7 +119,8 @@ fun WeatherScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Box(modifier = Modifier.fillMaxWidth()) {
+        // Animated weather card appearance
+        Box(modifier = Modifier.fillMaxWidth().animateContentSize()) {
             when (val state = uiState) {
                 is WeatherUiState.Loading -> {
                     Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
@@ -125,7 +131,8 @@ fun WeatherScreen(
                     Text(
                         text = stringResource(R.string.error_prefix, state.message),
                         color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(16.dp),
+                        textAlign = TextAlign.Center
                     )
                 }
                 is WeatherUiState.Success -> {
@@ -145,7 +152,7 @@ fun WeatherDetailCard(
     weather: WeatherDomainModel,
     onCreateReport: () -> Unit
 ) {
-    SectionCard {
+    SectionCard(modifier = Modifier.animateContentSize()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -157,13 +164,16 @@ fun WeatherDetailCard(
                     fontWeight = FontWeight.Bold,
                     color = LightText,
                     maxLines = 1,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis
                 )
+                // Fix: Remove "+" and allow wrapping
                 Text(
                     text = weather.condition.replace("+", " ").trim(),
                     fontSize = 14.sp,
                     color = MutedText,
-                    lineHeight = 18.sp
+                    lineHeight = 18.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
             
@@ -179,7 +189,8 @@ fun WeatherDetailCard(
                     fontWeight = FontWeight.Bold,
                     color = LimeGreen,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    maxLines = 1
+                    maxLines = 1,
+                    textAlign = TextAlign.Center
                 )
             }
         }

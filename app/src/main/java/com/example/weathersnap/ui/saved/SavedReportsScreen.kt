@@ -1,5 +1,7 @@
 package com.example.weathersnap.ui.saved
 
+import androidx.compose.animation.*
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,20 +14,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.example.weathersnap.R
 import com.example.weathersnap.data.local.entity.ReportEntity
 import com.example.weathersnap.ui.components.GradientHeaderCard
 import com.example.weathersnap.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-import androidx.compose.ui.res.stringResource
-import com.example.weathersnap.R
-
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SavedReportsScreen(
     onBack: () -> Unit,
@@ -55,17 +57,19 @@ fun SavedReportsScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        if (reports.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(stringResource(R.string.no_reports_yet), color = MutedText)
-            }
-        } else {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(bottom = 32.dp)
-            ) {
-                items(reports) { report ->
-                    ReportItem(report)
+        Box(modifier = Modifier.fillMaxSize().animateContentSize()) {
+            if (reports.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(stringResource(R.string.no_reports_yet), color = MutedText)
+                }
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(bottom = 32.dp)
+                ) {
+                    items(reports, key = { it.id }) { report ->
+                        ReportItem(report, Modifier.animateItemPlacement())
+                    }
                 }
             }
         }
@@ -73,9 +77,9 @@ fun SavedReportsScreen(
 }
 
 @Composable
-fun ReportItem(report: ReportEntity) {
+fun ReportItem(report: ReportEntity, modifier: Modifier = Modifier) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MutedDark)
     ) {
@@ -94,11 +98,11 @@ fun ReportItem(report: ReportEntity) {
             
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(text = report.cityName, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = LightText)
+                    // Fix: Formatting condition
                     Text(text = report.condition.replace("+", " ").trim(), fontSize = 13.sp, color = MutedText)
                     val date = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(Date(report.timestamp))
                     Text(text = date, fontSize = 11.sp, color = MutedText.copy(alpha = 0.7f))

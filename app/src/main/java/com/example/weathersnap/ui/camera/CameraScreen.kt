@@ -41,21 +41,20 @@ fun CameraScreen(
     val mainExecutor = remember { ContextCompat.getMainExecutor(context) }
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
     val imageCapture = remember { ImageCapture.Builder().build() }
+    
+    // Safety: ensure we always use the latest callbacks
+    val currentOnImageCaptured by rememberUpdatedState(onImageCaptured)
+    val currentOnClose by rememberUpdatedState(onClose)
 
     var hasPermission by remember {
         mutableStateOf(
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.CAMERA
-            ) == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
         )
     }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        hasPermission = granted
-    }
+    ) { granted -> hasPermission = granted }
 
     LaunchedEffect(Unit) {
         if (!hasPermission) {
@@ -73,16 +72,19 @@ fun CameraScreen(
         if (hasPermission) {
             AndroidView(
                 factory = { ctx ->
-                    val previewView = PreviewView(ctx)
+                    val previewView = PreviewView(ctx).apply {
+                        scaleType = PreviewView.ScaleType.FILL_CENTER
+                    }
                     val providerFuture = ProcessCameraProvider.getInstance(ctx)
                     providerFuture.addListener({
                         try {
-                            val provider = providerFuture.get()
+                            val cameraProvider = providerFuture.get()
                             val preview = Preview.Builder().build().also {
                                 it.setSurfaceProvider(previewView.surfaceProvider)
                             }
-                            provider.unbindAll()
-                            provider.bindToLifecycle(
+
+                            cameraProvider.unbindAll()
+                            cameraProvider.bindToLifecycle(
                                 lifecycleOwner,
                                 CameraSelector.DEFAULT_BACK_CAMERA,
                                 preview,
@@ -94,7 +96,8 @@ fun CameraScreen(
                     }, mainExecutor)
                     previewView
                 },
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                update = { /* No manual updates needed */ }
             )
 
             // Header Overlay
@@ -113,7 +116,7 @@ fun CameraScreen(
                     fontWeight = FontWeight.Bold
                 )
                 Button(
-                    onClick = onClose,
+                    onClick = currentOnClose,
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.1f)),
                     shape = RoundedCornerShape(12.dp)
                 ) {
@@ -131,7 +134,7 @@ fun CameraScreen(
             ) {
                 Button(
                     onClick = {
-                        val file = File(context.cacheDir, "${System.currentTimeMillis()}.jpg")
+                        val file = File(context.cacheDir, "WS_${System.currentTimeMillis()}.jpg")
                         val options = ImageCapture.OutputFileOptions.Builder(file).build()
                         imageCapture.takePicture(
                             options,
@@ -139,20 +142,24 @@ fun CameraScreen(
                             object : ImageCapture.OnImageSavedCallback {
                                 override fun onImageSaved(results: ImageCapture.OutputFileResults) {
                                     val uri = Uri.fromFile(file)
-                                    // THREADING FIX: Switch to main thread for navigation/state updates
-                                    mainExecutor.execute {
-                                        onImageCaptured(uri)
+                                    // Ensure file actually exists and is readable
+                                    if (file.exists() && file.length() > 0) {
+                                        mainExecutor.execute {
+                                            currentOnImageCaptured(uri)
+                                        }
+                                    } else {
+                                        Log.e("CameraScreen", "Captured file is empty or missing")
                                     }
                                 }
 
                                 override fun onError(e: ImageCaptureException) {
-                                    Log.e("CameraScreen", "Capture failed: ${e.message}")
+                                    Log.e("CameraScreen", "Capture failed: ${e.message}", e)
                                 }
                             }
                         )
                     },
                     modifier = Modifier
-                        .fillMaxWidth(0.9f)
+                        .fillMaxWidth(0.85f)
                         .height(64.dp),
                     shape = RoundedCornerShape(32.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = LimeGreen, contentColor = DarkOlive)

@@ -1,6 +1,7 @@
 package com.example.weathersnap.ui.report
 
 import android.net.Uri
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -14,17 +15,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.example.weathersnap.R
 import com.example.weathersnap.data.model.WeatherDomainModel
 import com.example.weathersnap.ui.components.*
 import com.example.weathersnap.ui.theme.*
-
-import androidx.compose.ui.res.stringResource
-import com.example.weathersnap.R
 
 @Composable
 fun CreateReportScreen(
@@ -75,7 +77,7 @@ fun CreateReportScreen(
             }
         )
 
-        SectionCard {
+        SectionCard(modifier = Modifier.animateContentSize()) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -87,14 +89,14 @@ fun CreateReportScreen(
                         fontWeight = FontWeight.Bold,
                         color = LightText,
                         maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = weather.condition.replace("+", " ").trim(),
                         fontSize = 13.sp,
                         color = MutedText,
                         maxLines = 2,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        overflow = TextOverflow.Ellipsis,
                         lineHeight = 16.sp
                     )
                 }
@@ -113,7 +115,7 @@ fun CreateReportScreen(
                         modifier = Modifier
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                             .widthIn(min = 48.dp),
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        textAlign = TextAlign.Center,
                         maxLines = 1
                     )
                 }
@@ -132,18 +134,26 @@ fun CreateReportScreen(
                     .fillMaxWidth()
                     .height(240.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFF33332B)),
+                    .background(Color(0xFF33332B))
+                    .animateContentSize(),
                 contentAlignment = Alignment.Center
             ) {
-                if (uiState.imagePath != null) {
-                    AsyncImage(
-                        model = uiState.imagePath,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Text(stringResource(R.string.photo_preview), color = MutedText)
+                // Smooth image preview appearance
+                AnimatedContent(
+                    targetState = uiState.imagePath,
+                    transitionSpec = { fadeIn() togetherWith fadeOut() },
+                    label = "ImagePreview"
+                ) { imagePath ->
+                    if (imagePath != null) {
+                        AsyncImage(
+                            model = imagePath,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Text(stringResource(R.string.photo_preview), color = MutedText)
+                    }
                 }
             }
             
@@ -176,7 +186,9 @@ fun CreateReportScreen(
                 placeholder = { Text(stringResource(R.string.notes_placeholder), color = MutedText.copy(alpha = 0.5f)) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MutedText,
-                    unfocusedBorderColor = MutedText.copy(alpha = 0.3f)
+                    unfocusedBorderColor = MutedText.copy(alpha = 0.3f),
+                    focusedTextColor = LightText,
+                    unfocusedTextColor = LightText
                 ),
                 minLines = 4
             )

@@ -1,13 +1,14 @@
 package com.example.weathersnap.navigation
 
 import android.net.Uri
-import androidx.compose.animation.AnimatedContentTransitionScope
+import android.util.Log
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.navigation.NavType
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -29,8 +30,8 @@ fun NavGraph(navController: NavHostController) {
     NavHost(
         navController = navController,
         startDestination = Screen.Weather.route,
-        enterTransition = { fadeIn(animationSpec = tween(300)) },
-        exitTransition = { fadeOut(animationSpec = tween(300)) }
+        enterTransition = { fadeIn(animationSpec = tween(400)) },
+        exitTransition = { fadeOut(animationSpec = tween(400)) }
     ) {
         composable(Screen.Weather.route) {
             WeatherScreen(
@@ -38,9 +39,13 @@ fun NavGraph(navController: NavHostController) {
                     navController.navigate(Screen.SavedReports.route)
                 },
                 onNavigateToCreateReport = { weather ->
-                    val weatherJson = gson.toJson(weather)
-                    val encodedWeather = URLEncoder.encode(weatherJson, StandardCharsets.UTF_8.toString())
-                    navController.navigate("create_report/$encodedWeather")
+                    try {
+                        val weatherJson = gson.toJson(weather)
+                        val encodedWeather = URLEncoder.encode(weatherJson, StandardCharsets.UTF_8.toString())
+                        navController.navigate("create_report/$encodedWeather")
+                    } catch (e: Exception) {
+                        Log.e("NavGraph", "Navigation encoding failed", e)
+                    }
                 }
             )
         }
@@ -62,24 +67,27 @@ fun NavGraph(navController: NavHostController) {
         composable(
             route = "create_report/{weatherJson}",
             arguments = listOf(
-                navArgument("weatherJson") {
-                    type = NavType.StringType
-                }
+                navArgument("weatherJson") { type = NavType.StringType }
             )
         ) { backStackEntry ->
             val weatherJson = backStackEntry.arguments?.getString("weatherJson") ?: ""
             
-            val weather = try {
-                gson.fromJson(weatherJson, WeatherDomainModel::class.java)
-            } catch (e: Exception) {
-                null
+            val weather: WeatherDomainModel? = remember(weatherJson) {
+                try {
+                    gson.fromJson(weatherJson, WeatherDomainModel::class.java)
+                } catch (e: Exception) {
+                    Log.e("NavGraph", "JSON parsing failed", e)
+                    null
+                }
             }
 
             val capturedImageUriString by backStackEntry.savedStateHandle
                 .getStateFlow<String?>("capturedImageUri", null)
                 .collectAsState()
 
-            val capturedImageUri = capturedImageUriString?.let { Uri.parse(it) }
+            val capturedImageUri = remember(capturedImageUriString) {
+                capturedImageUriString?.let { Uri.parse(it) }
+            }
 
             if (weather != null) {
                 CreateReportScreen(
@@ -92,6 +100,7 @@ fun NavGraph(navController: NavHostController) {
                         navController.popBackStack()
                     },
                     onSaveSuccess = {
+                        backStackEntry.savedStateHandle.remove<String>("capturedImageUri")
                         navController.navigate(Screen.SavedReports.route) {
                             popUpTo(Screen.Weather.route)
                         }
