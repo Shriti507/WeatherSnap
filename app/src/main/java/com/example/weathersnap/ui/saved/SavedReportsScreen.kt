@@ -83,10 +83,11 @@ fun SavedReportsScreen(
 
 @Composable
 fun ReportItem(report: ReportEntity, modifier: Modifier = Modifier) {
-    // Safety check: Log if file is missing
-    LaunchedEffect(report.imagePath) {
-        val file = File(report.imagePath)
-        if (!file.exists()) {
+    val imageFile = remember(report.imagePath) { File(report.imagePath) }
+    val fileExists = remember(imageFile) { imageFile.exists() }
+
+    if (!fileExists) {
+        LaunchedEffect(report.imagePath) {
             Log.e("SavedReportsScreen", "Image file missing at path: ${report.imagePath}")
         }
     }
@@ -97,21 +98,42 @@ fun ReportItem(report: ReportEntity, modifier: Modifier = Modifier) {
         colors = CardDefaults.cardColors(containerColor = MutedDark)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(report.imagePath)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = "Weather report image",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color.Black.copy(alpha = 0.2f)),
-                contentScale = ContentScale.Crop,
-                error = painterResource(android.R.drawable.ic_menu_report_image),
-                placeholder = painterResource(android.R.drawable.ic_menu_gallery)
-            )
+            if (fileExists) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(report.imagePath)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Weather report image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.Black.copy(alpha = 0.2f)),
+                    contentScale = ContentScale.Crop,
+                    error = painterResource(id = R.drawable.ic_launcher_foreground),
+                    placeholder = painterResource(id = R.drawable.ic_launcher_background)
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.DarkGray.copy(alpha = 0.5f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                            contentDescription = null,
+                            tint = Color.Gray,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Text("Image missing or moved", color = Color.Gray, fontSize = 12.sp)
+                    }
+                }
+            }
             
             Spacer(modifier = Modifier.height(16.dp))
             

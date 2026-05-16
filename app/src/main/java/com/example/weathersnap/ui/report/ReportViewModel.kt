@@ -48,10 +48,17 @@ class ReportViewModel @Inject constructor(
                     val originalFile = File(path)
                     val originalSizeStr = if (originalFile.exists()) ImageUtils.getReadableFileSize(originalFile) else "Unknown"
                     
-                    val compressedFile = ImageUtils.compressImage(context, uri)
-                    val compressedSizeStr = ImageUtils.getReadableFileSize(compressedFile)
+                    // 1. Process and save to PERMANENT storage (/files/reports/)
+                    val permanentPath = ImageUtils.processAndSavePermanentImage(context, uri)
+                    val permanentFile = File(permanentPath)
+                    val compressedSizeStr = ImageUtils.getReadableFileSize(permanentFile)
                     
-                    Triple(compressedFile.absolutePath, originalSizeStr, compressedSizeStr)
+                    // 2. CLEANUP: Delete only the temporary raw capture from cache
+                    if (originalFile.exists() && originalFile.absolutePath.contains(context.cacheDir.path)) {
+                        originalFile.delete()
+                    }
+                    
+                    Triple(permanentPath, originalSizeStr, compressedSizeStr)
                 }
                 
                 _uiState.value = _uiState.value.copy(
