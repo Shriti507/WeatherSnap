@@ -1,12 +1,16 @@
 package com.example.weathersnap.ui.saved
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -14,6 +18,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.weathersnap.data.local.entity.ReportEntity
+import com.example.weathersnap.ui.components.GradientHeaderCard
+import com.example.weathersnap.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -27,24 +33,33 @@ fun SavedReportsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .background(DarkOlive)
+            .padding(horizontal = 16.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Button(onClick = onBack) { Text("Back") }
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(text = "Saved Reports", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-        }
+        GradientHeaderCard(
+            title = "Saved Reports",
+            subtitle = "${reports.size} report${if (reports.size != 1) "s" else ""} stored locally",
+            actionButton = {
+                Button(
+                    onClick = onBack,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2C2C24).copy(alpha = 0.8f)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Back", color = Color.White, fontSize = 12.sp)
+                }
+            }
+        )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         if (reports.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("No reports saved yet.", color = MaterialTheme.colorScheme.outline)
+                Text("No reports saved yet.", color = MutedText)
             }
         } else {
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(bottom = 16.dp)
+                contentPadding = PaddingValues(bottom = 32.dp)
             ) {
                 items(reports) { report ->
                     ReportItem(report)
@@ -58,39 +73,87 @@ fun SavedReportsScreen(
 fun ReportItem(report: ReportEntity) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MutedDark)
     ) {
-        Column {
+        Column(modifier = Modifier.padding(16.dp)) {
             AsyncImage(
                 model = report.imagePath,
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp),
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(12.dp)),
                 contentScale = ContentScale.Crop
             )
-            Column(modifier = Modifier.padding(16.dp)) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(text = report.cityName, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    Text(text = report.temperature, fontSize = 18.sp, color = MaterialTheme.colorScheme.primary)
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = report.cityName, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = LightText)
+                    Text(text = report.condition, fontSize = 13.sp, color = MutedText)
+                    val date = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(Date(report.timestamp))
+                    Text(text = date, fontSize = 11.sp, color = MutedText.copy(alpha = 0.7f))
                 }
-                Text(text = report.condition, color = MaterialTheme.colorScheme.outline)
                 
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Text(text = "Notes: ${report.notes}", fontSize = 14.sp)
-                
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
-                
-                val date = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(Date(report.timestamp))
-                Text(text = date, fontSize = 12.sp, color = MaterialTheme.colorScheme.outline)
-                
-                Text(
-                    text = "Size: ${report.compressedSize} (was ${report.originalSize})",
-                    fontSize = 10.sp,
-                    color = MaterialTheme.colorScheme.outline
-                )
+                Card(
+                    shape = RoundedCornerShape(8.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF4A4B1A))
+                ) {
+                    Text(
+                        text = report.temperature,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = LimeGreen,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                SizeChip("Original", report.originalSize, Color(0xFF3D3D34))
+                SizeChip("Compressed", report.compressedSize, Color(0xFF333D2B))
+            }
+            
+            if (report.notes.isNotBlank()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f))
+                ) {
+                    Text(
+                        text = report.notes,
+                        fontSize = 13.sp,
+                        color = LightText,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SizeChip(label: String, value: String, bgColor: Color) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = bgColor),
+        modifier = Modifier.height(44.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(text = label, fontSize = 9.sp, color = MutedText)
+            Text(text = value, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = LightText)
         }
     }
 }

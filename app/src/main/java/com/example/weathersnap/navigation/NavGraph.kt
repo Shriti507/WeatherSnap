@@ -1,6 +1,10 @@
 package com.example.weathersnap.navigation
 
 import android.net.Uri
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -24,7 +28,9 @@ fun NavGraph(navController: NavHostController) {
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Weather.route
+        startDestination = Screen.Weather.route,
+        enterTransition = { fadeIn(animationSpec = tween(300)) },
+        exitTransition = { fadeOut(animationSpec = tween(300)) }
     ) {
         composable(Screen.Weather.route) {
             WeatherScreen(
@@ -42,7 +48,6 @@ fun NavGraph(navController: NavHostController) {
         composable(Screen.Camera.route) {
             CameraScreen(
                 onImageCaptured = { uri ->
-                    // Set result in savedStateHandle of the PREVIOUS screen (CreateReport)
                     navController.previousBackStackEntry
                         ?.savedStateHandle
                         ?.set("capturedImageUri", uri.toString())
@@ -70,7 +75,6 @@ fun NavGraph(navController: NavHostController) {
                 null
             }
 
-            // Reactively observe the image Uri from savedStateHandle
             val capturedImageUriString by backStackEntry.savedStateHandle
                 .getStateFlow<String?>("capturedImageUri", null)
                 .collectAsState()
@@ -83,6 +87,9 @@ fun NavGraph(navController: NavHostController) {
                     capturedImageUri = capturedImageUri,
                     onNavigateToCamera = {
                         navController.navigate(Screen.Camera.route)
+                    },
+                    onBack = {
+                        navController.popBackStack()
                     },
                     onSaveSuccess = {
                         navController.navigate(Screen.SavedReports.route) {
