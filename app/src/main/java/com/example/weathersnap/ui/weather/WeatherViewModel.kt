@@ -6,9 +6,8 @@ import com.example.weathersnap.data.model.WeatherDomainModel
 import com.example.weathersnap.data.remote.dto.CityDto
 import com.example.weathersnap.data.repository.WeatherRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,6 +18,7 @@ sealed class WeatherUiState {
     data class Error(val message: String) : WeatherUiState()
 }
 
+@OptIn(FlowPreview::class)
 @HiltViewModel
 class WeatherViewModel @Inject constructor(
     private val repository: WeatherRepository
@@ -27,26 +27,33 @@ class WeatherViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<WeatherUiState>(WeatherUiState.Idle)
     val uiState: StateFlow<WeatherUiState> = _uiState.asStateFlow()
 
-    private val _suggestions = MutableStateFlow<List<CityDto>>(emptyList())
-    val suggestions: StateFlow<List<CityDto>> = _suggestions.asStateFlow()
-
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
+    val suggestions: StateFlow<List<CityDto>> = _searchQuery
+        .debounce(400L)
+        .distinctUntilChanged()
+        .map { query ->
+            if (query.length > 2) {
+                repository.searchCity(query)
+            } else {
+                emptyList()
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     fun onSearchQueryChange(newQuery: String) {
         _searchQuery.value = newQuery
-        if (newQuery.length > 2) {
-            viewModelScope.launch {
-                _suggestions.value = repository.searchCity(newQuery)
-            }
-        } else {
-            _suggestions.value = emptyList()
-        }
     }
 
     fun selectCity(city: CityDto) {
         _searchQuery.value = city.name
-        _suggestions.value = emptyList()
+        // Clear suggestions by forcing the flow state if needed, 
+        // but typically navigating or setting query is enough.
         viewModelScope.launch {
             _uiState.value = WeatherUiState.Loading
             try {

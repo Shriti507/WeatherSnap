@@ -20,6 +20,9 @@ import com.example.weathersnap.data.model.WeatherDomainModel
 import com.example.weathersnap.ui.components.*
 import com.example.weathersnap.ui.theme.*
 
+import androidx.compose.ui.res.stringResource
+import com.example.weathersnap.R
+
 @Composable
 fun WeatherScreen(
     onNavigateToSaved: () -> Unit,
@@ -37,21 +40,21 @@ fun WeatherScreen(
             .padding(horizontal = 16.dp)
     ) {
         GradientHeaderCard(
-            title = "WeatherSnap",
-            subtitle = "Live weather reports with camera evidence",
+            title = stringResource(R.string.app_name),
+            subtitle = stringResource(R.string.app_subtitle),
             actionButton = {
                 Button(
                     onClick = onNavigateToSaved,
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2C2C24).copy(alpha = 0.8f)),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Reports", color = Color.White, fontSize = 12.sp)
+                    Text(stringResource(R.string.reports_button), color = Color.White, fontSize = 12.sp)
                 }
             }
         )
 
         SectionCard {
-            Text(text = "City", fontSize = 12.sp, color = MutedText)
+            Text(text = stringResource(R.string.city_label), fontSize = 12.sp, color = MutedText)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -65,19 +68,19 @@ fun WeatherScreen(
                         unfocusedBorderColor = Color.Transparent,
                         cursorColor = LimeGreen
                     ),
-                    placeholder = { Text("Search City...", color = MutedText.copy(alpha = 0.5f)) }
+                    placeholder = { Text(stringResource(R.string.search_placeholder), color = MutedText.copy(alpha = 0.5f)) }
                 )
                 Button(
-                    onClick = { /* ViewModel handles it */ },
+                    onClick = { /* ViewModel handles it via debounce */ },
                     colors = ButtonDefaults.buttonColors(containerColor = LimeGreen.copy(alpha = 0.3f)),
                     shape = RoundedCornerShape(20.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
-                    Text("Search", color = LimeGreen, fontSize = 12.sp)
+                    Text(stringResource(R.string.search_button), color = LimeGreen, fontSize = 12.sp)
                 }
             }
             Text(
-                text = "Enter more than 2 letters to start city suggestions.",
+                text = stringResource(R.string.search_helper_text),
                 fontSize = 10.sp,
                 color = MutedText,
                 modifier = Modifier.padding(top = 4.dp)
@@ -120,7 +123,7 @@ fun WeatherScreen(
                 }
                 is WeatherUiState.Error -> {
                     Text(
-                        text = "Error: ${state.message}",
+                        text = stringResource(R.string.error_prefix, state.message),
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(16.dp)
                     )
@@ -184,9 +187,9 @@ fun WeatherDetailCard(
         Spacer(modifier = Modifier.height(24.dp))
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            WeatherMetricCard("Humidity", weather.humidity, HumidityColor, Modifier.weight(1f))
-            WeatherMetricCard("Wind", weather.windSpeed, WindColor, Modifier.weight(1f))
-            WeatherMetricCard("Pressure", weather.pressure.take(5), PressureColor, Modifier.weight(1f))
+            WeatherMetricCard(stringResource(R.string.humidity_label), weather.humidity, HumidityColor, Modifier.weight(1f))
+            WeatherMetricCard(stringResource(R.string.wind_label), weather.windSpeed, WindColor, Modifier.weight(1f))
+            WeatherMetricCard(stringResource(R.string.pressure_label), weather.pressure.take(5), PressureColor, Modifier.weight(1f))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -197,14 +200,14 @@ fun WeatherDetailCard(
                 .padding(vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = "Report readiness", color = MutedText, fontSize = 14.sp)
-            Text(text = "Camera and Room DB enabled", color = LightText, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            Text(text = stringResource(R.string.report_readiness), color = MutedText, fontSize = 14.sp)
+            Text(text = stringResource(R.string.camera_room_enabled), color = LightText, fontSize = 14.sp, fontWeight = FontWeight.Medium)
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
         StyledButton(
-            text = "Create Report",
+            text = stringResource(R.string.create_report_button),
             onClick = onCreateReport
         )
     }

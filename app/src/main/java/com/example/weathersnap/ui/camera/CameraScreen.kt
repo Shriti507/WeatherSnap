@@ -11,7 +11,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,11 +19,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import com.example.weathersnap.R
 import com.example.weathersnap.ui.theme.DarkOlive
 import com.example.weathersnap.ui.theme.LimeGreen
 import java.io.File
@@ -43,18 +44,29 @@ fun CameraScreen(
 
     var hasPermission by remember {
         mutableStateOf(
-            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED
         )
     }
 
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { hasPermission = it }
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        hasPermission = granted
+    }
 
     LaunchedEffect(Unit) {
-        if (!hasPermission) launcher.launch(Manifest.permission.CAMERA)
+        if (!hasPermission) {
+            launcher.launch(Manifest.permission.CAMERA)
+        }
     }
 
     DisposableEffect(Unit) {
-        onDispose { cameraExecutor.shutdown() }
+        onDispose {
+            cameraExecutor.shutdown()
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
@@ -70,7 +82,12 @@ fun CameraScreen(
                                 it.setSurfaceProvider(previewView.surfaceProvider)
                             }
                             provider.unbindAll()
-                            provider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, imageCapture)
+                            provider.bindToLifecycle(
+                                lifecycleOwner,
+                                CameraSelector.DEFAULT_BACK_CAMERA,
+                                preview,
+                                imageCapture
+                            )
                         } catch (e: Exception) {
                             Log.e("CameraScreen", "Binding failed", e)
                         }
@@ -90,7 +107,7 @@ fun CameraScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Custom Camera",
+                    text = stringResource(R.string.custom_camera),
                     color = Color.White,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
@@ -100,7 +117,7 @@ fun CameraScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.1f)),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Close", color = Color.White, fontSize = 12.sp)
+                    Text(stringResource(R.string.close_button), color = Color.White, fontSize = 12.sp)
                 }
             }
 
@@ -122,8 +139,12 @@ fun CameraScreen(
                             object : ImageCapture.OnImageSavedCallback {
                                 override fun onImageSaved(results: ImageCapture.OutputFileResults) {
                                     val uri = Uri.fromFile(file)
-                                    mainExecutor.execute { onImageCaptured(uri) }
+                                    // THREADING FIX: Switch to main thread for navigation/state updates
+                                    mainExecutor.execute {
+                                        onImageCaptured(uri)
+                                    }
                                 }
+
                                 override fun onError(e: ImageCaptureException) {
                                     Log.e("CameraScreen", "Capture failed: ${e.message}")
                                 }
@@ -136,7 +157,7 @@ fun CameraScreen(
                     shape = RoundedCornerShape(32.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = LimeGreen, contentColor = DarkOlive)
                 ) {
-                    Text("Capture", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(stringResource(R.string.capture_button), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
             }
         } else {
@@ -145,10 +166,10 @@ fun CameraScreen(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Camera permission required", color = Color.White)
+                Text(stringResource(R.string.camera_permission_required), color = Color.White)
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(onClick = { launcher.launch(Manifest.permission.CAMERA) }) {
-                    Text("Grant Permission")
+                    Text(stringResource(R.string.grant_permission))
                 }
             }
         }

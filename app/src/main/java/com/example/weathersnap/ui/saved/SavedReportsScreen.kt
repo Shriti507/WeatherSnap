@@ -23,6 +23,9 @@ import com.example.weathersnap.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
 
+import androidx.compose.ui.res.stringResource
+import com.example.weathersnap.R
+
 @Composable
 fun SavedReportsScreen(
     onBack: () -> Unit,
@@ -37,15 +40,15 @@ fun SavedReportsScreen(
             .padding(horizontal = 16.dp)
     ) {
         GradientHeaderCard(
-            title = "Saved Reports",
-            subtitle = "${reports.size} report${if (reports.size != 1) "s" else ""} stored locally",
+            title = stringResource(R.string.saved_reports_title),
+            subtitle = stringResource(R.string.reports_stored_locally, reports.size),
             actionButton = {
                 Button(
                     onClick = onBack,
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2C2C24).copy(alpha = 0.8f)),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Back", color = Color.White, fontSize = 12.sp)
+                    Text(stringResource(R.string.back_button), color = Color.White, fontSize = 12.sp)
                 }
             }
         )
@@ -54,7 +57,7 @@ fun SavedReportsScreen(
 
         if (reports.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("No reports saved yet.", color = MutedText)
+                Text(stringResource(R.string.no_reports_yet), color = MutedText)
             }
         } else {
             LazyColumn(
@@ -118,8 +121,8 @@ fun ReportItem(report: ReportEntity) {
             Spacer(modifier = Modifier.height(16.dp))
             
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SizeChip("Original", report.originalSize, Color(0xFF3D3D34))
-                SizeChip("Compressed", report.compressedSize, Color(0xFF333D2B))
+                SizeChip(stringResource(R.string.original_label), report.originalSize, Color(0xFF3D3D34))
+                SizeChip(stringResource(R.string.compressed_label), report.compressedSize, Color(0xFF333D2B))
             }
             
             if (report.notes.isNotBlank()) {
@@ -130,7 +133,7 @@ fun ReportItem(report: ReportEntity) {
                     colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f))
                 ) {
                     Text(
-                        text = report.notes,
+                        text = stringResource(R.string.notes_label, report.notes),
                         fontSize = 13.sp,
                         color = LightText,
                         modifier = Modifier.padding(12.dp)

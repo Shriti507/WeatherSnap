@@ -23,6 +23,9 @@ import com.example.weathersnap.data.model.WeatherDomainModel
 import com.example.weathersnap.ui.components.*
 import com.example.weathersnap.ui.theme.*
 
+import androidx.compose.ui.res.stringResource
+import com.example.weathersnap.R
+
 @Composable
 fun CreateReportScreen(
     weather: WeatherDomainModel,
@@ -59,15 +62,15 @@ fun CreateReportScreen(
             .verticalScroll(rememberScrollState())
     ) {
         GradientHeaderCard(
-            title = "Create Report",
-            subtitle = "Capture, compress, annotate",
+            title = stringResource(R.string.create_report_title),
+            subtitle = stringResource(R.string.create_report_subtitle),
             actionButton = {
                 Button(
                     onClick = onBack,
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2C2C24).copy(alpha = 0.8f)),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Back", color = Color.White, fontSize = 12.sp)
+                    Text(stringResource(R.string.back_button), color = Color.White, fontSize = 12.sp)
                 }
             }
         )
@@ -117,9 +120,9 @@ fun CreateReportScreen(
             }
             Spacer(modifier = Modifier.height(12.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                WeatherMetricCard("Humidity", weather.humidity, HumidityColor, Modifier.weight(1f))
-                WeatherMetricCard("Wind", weather.windSpeed, WindColor, Modifier.weight(1f))
-                WeatherMetricCard("Pressure", weather.pressure.take(5), PressureColor, Modifier.weight(1f))
+                WeatherMetricCard(stringResource(R.string.humidity_label), weather.humidity, HumidityColor, Modifier.weight(1f))
+                WeatherMetricCard(stringResource(R.string.wind_label), weather.windSpeed, WindColor, Modifier.weight(1f))
+                WeatherMetricCard(stringResource(R.string.pressure_label), weather.pressure.take(5), PressureColor, Modifier.weight(1f))
             }
         }
 
@@ -140,14 +143,14 @@ fun CreateReportScreen(
                         contentScale = ContentScale.Crop
                     )
                 } else {
-                    Text("Photo preview", color = MutedText)
+                    Text(stringResource(R.string.photo_preview), color = MutedText)
                 }
             }
             
             Spacer(modifier = Modifier.height(16.dp))
 
             StyledButton(
-                text = if (uiState.imagePath == null) "Capture Photo" else "Retake Photo",
+                text = if (uiState.imagePath == null) stringResource(R.string.capture_photo) else stringResource(R.string.retake_photo),
                 onClick = onNavigateToCamera,
                 containerColor = LimeGreen.copy(alpha = 0.3f),
                 contentColor = LimeGreen
@@ -155,7 +158,7 @@ fun CreateReportScreen(
             
             if (uiState.imagePath != null) {
                 Text(
-                    text = "Original: ${uiState.originalSize} | Compressed: ${uiState.compressedSize}",
+                    text = stringResource(R.string.size_info, uiState.originalSize, uiState.compressedSize),
                     fontSize = 10.sp,
                     color = MutedText,
                     modifier = Modifier.padding(top = 8.dp).align(Alignment.CenterHorizontally)
@@ -164,13 +167,13 @@ fun CreateReportScreen(
         }
 
         SectionCard {
-            Text(text = "Field Notes", fontSize = 14.sp, color = LightText, fontWeight = FontWeight.Bold)
+            Text(text = stringResource(R.string.field_notes), fontSize = 14.sp, color = LightText, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(12.dp))
             OutlinedTextField(
                 value = uiState.notes,
                 onValueChange = { viewModel.onNotesChange(it) },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Notes", color = MutedText.copy(alpha = 0.5f)) },
+                placeholder = { Text(stringResource(R.string.notes_placeholder), color = MutedText.copy(alpha = 0.5f)) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MutedText,
                     unfocusedBorderColor = MutedText.copy(alpha = 0.3f)
@@ -182,7 +185,7 @@ fun CreateReportScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         StyledButton(
-            text = "Save Report",
+            text = stringResource(R.string.save_report),
             onClick = { viewModel.saveReport() },
             enabled = uiState.imagePath != null
         )

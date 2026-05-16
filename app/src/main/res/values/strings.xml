@@ -1,3 +1,42 @@
 <resources>
     <string name="app_name">WeatherSnap</string>
+    <string name="app_subtitle">Live weather reports with camera evidence</string>
+    <string name="reports_button">Reports</string>
+    <string name="city_label">City</string>
+    <string name="search_placeholder">Search City...</string>
+    <string name="search_button">Search</string>
+    <string name="search_helper_text">Enter more than 2 letters to start city suggestions.</string>
+    <string name="error_prefix">Error: %1$s</string>
+    <string name="search_idle_text">Search for a city to see weather</string>
+    <string name="report_readiness">Report readiness</string>
+    <string name="camera_room_enabled">Camera and Room DB enabled</string>
+    <string name="create_report_button">Create Report</string>
+    <string name="humidity_label">Humidity</string>
+    <string name="wind_label">Wind</string>
+    <string name="pressure_label">Pressure</string>
+
+    <string name="create_report_title">Create Report</string>
+    <string name="create_report_subtitle">Capture, compress, annotate</string>
+    <string name="back_button">Back</string>
+    <string name="photo_preview">Photo preview</string>
+    <string name="capture_photo">Capture Photo</string>
+    <string name="retake_photo">Retake Photo</string>
+    <string name="size_info">Original: %1$s | Compressed: %2$s</string>
+    <string name="field_notes">Field Notes</string>
+    <string name="notes_placeholder">Notes</string>
+    <string name="save_report">Save Report</string>
+
+    <string name="custom_camera">Custom Camera</string>
+    <string name="close_button">Close</string>
+    <string name="capture_button">Capture</string>
+    <string name="camera_permission_required">Camera permission required</string>
+    <string name="grant_permission">Grant Permission</string>
+
+    <string name="saved_reports_title">Saved Reports</string>
+    <string name="reports_stored_locally">%1$d report(s) stored locally</string>
+    <string name="no_reports_yet">No reports saved yet.</string>
+    <string name="original_label">Original</string>
+    <string name="compressed_label">Compressed</string>
+    <string name="size_display">Size: %1$s (was %2$s)</string>
+    <string name="notes_label">Notes: %1$s</string>
 </resources>
