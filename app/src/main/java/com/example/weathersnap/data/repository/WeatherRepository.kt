@@ -3,6 +3,8 @@ package com.example.weathersnap.data.repository
 import com.example.weathersnap.data.model.WeatherDomainModel
 import com.example.weathersnap.data.remote.OpenMeteoApi
 import com.example.weathersnap.data.remote.dto.CityDto
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -12,12 +14,12 @@ class WeatherRepository @Inject constructor(
 ) {
     private val suggestionsCache = mutableMapOf<String, List<CityDto>>()
 
-    suspend fun searchCity(query: String): List<CityDto> {
-        if (query.length <= 2) return emptyList()
+    suspend fun searchCity(query: String): List<CityDto> = withContext(Dispatchers.IO) {
+        if (query.length <= 2) return@withContext emptyList()
         
-        suggestionsCache[query.lowercase()]?.let { return it }
+        suggestionsCache[query.lowercase()]?.let { return@withContext it }
 
-        return try {
+        try {
             val response = api.searchCity(query)
             val results = response.results ?: emptyList()
             suggestionsCache[query.lowercase()] = results
@@ -27,11 +29,11 @@ class WeatherRepository @Inject constructor(
         }
     }
 
-    suspend fun getWeather(city: CityDto): WeatherDomainModel {
+    suspend fun getWeather(city: CityDto): WeatherDomainModel = withContext(Dispatchers.IO) {
         val response = api.getWeather(city.latitude, city.longitude)
         val current = response.current
         
-        return WeatherDomainModel(
+        WeatherDomainModel(
             cityName = city.name,
             temperature = "${current.temperature}°C",
             condition = getWeatherCondition(current.weatherCode),

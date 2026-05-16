@@ -6,6 +6,7 @@ import com.example.weathersnap.data.model.WeatherDomainModel
 import com.example.weathersnap.data.remote.dto.CityDto
 import com.example.weathersnap.data.repository.WeatherRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -18,7 +19,7 @@ sealed class WeatherUiState {
     data class Error(val message: String) : WeatherUiState()
 }
 
-@OptIn(FlowPreview::class)
+@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class WeatherViewModel @Inject constructor(
     private val repository: WeatherRepository
@@ -33,7 +34,7 @@ class WeatherViewModel @Inject constructor(
     val suggestions: StateFlow<List<CityDto>> = _searchQuery
         .debounce(400L)
         .distinctUntilChanged()
-        .map { query ->
+        .mapLatest { query ->
             if (query.length > 2) {
                 repository.searchCity(query)
             } else {

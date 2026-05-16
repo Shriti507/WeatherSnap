@@ -24,9 +24,7 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 @Composable
-fun NavGraph(navController: NavHostController) {
-    val gson = Gson()
-
+fun NavGraph(navController: NavHostController, gson: Gson) {
     NavHost(
         navController = navController,
         startDestination = Screen.Weather.route,

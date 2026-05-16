@@ -20,6 +20,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import android.util.Log
+import java.io.File
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import com.example.weathersnap.R
 import com.example.weathersnap.data.local.entity.ReportEntity
 import com.example.weathersnap.ui.components.GradientHeaderCard
@@ -78,6 +83,14 @@ fun SavedReportsScreen(
 
 @Composable
 fun ReportItem(report: ReportEntity, modifier: Modifier = Modifier) {
+    // Safety check: Log if file is missing
+    LaunchedEffect(report.imagePath) {
+        val file = File(report.imagePath)
+        if (!file.exists()) {
+            Log.e("SavedReportsScreen", "Image file missing at path: ${report.imagePath}")
+        }
+    }
+
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -85,13 +98,19 @@ fun ReportItem(report: ReportEntity, modifier: Modifier = Modifier) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             AsyncImage(
-                model = report.imagePath,
-                contentDescription = null,
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(report.imagePath)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Weather report image",
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
-                    .clip(RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.Black.copy(alpha = 0.2f)),
+                contentScale = ContentScale.Crop,
+                error = painterResource(android.R.drawable.ic_menu_report_image),
+                placeholder = painterResource(android.R.drawable.ic_menu_gallery)
             )
             
             Spacer(modifier = Modifier.height(16.dp))

@@ -1,6 +1,7 @@
 package com.example.weathersnap.di
 
 import com.example.weathersnap.data.remote.OpenMeteoApi
+import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -14,6 +15,10 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
+
+    @Provides
+    @Singleton
+    fun provideGson(): Gson = Gson()
 
     @Provides
     @Singleton
@@ -33,11 +38,11 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOpenMeteoApi(okHttpClient: OkHttpClient): OpenMeteoApi {
+    fun provideOpenMeteoApi(okHttpClient: OkHttpClient, gson: Gson): OpenMeteoApi {
         return Retrofit.Builder()
             .baseUrl("https://api.open-meteo.com/")
             .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
             .create(OpenMeteoApi::class.java)
     }

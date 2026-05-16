@@ -10,10 +10,12 @@ import com.example.weathersnap.data.model.WeatherDomainModel
 import com.example.weathersnap.data.repository.ReportRepository
 import com.example.weathersnap.utils.ImageUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 
@@ -42,14 +44,18 @@ class ReportViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val path = uri.path ?: return@launch
-                val originalFile = File(path)
-                val originalSize = if (originalFile.exists()) ImageUtils.getReadableFileSize(originalFile) else "Unknown"
-                
-                val compressedFile = ImageUtils.compressImage(context, uri)
-                val compressedSize = ImageUtils.getReadableFileSize(compressedFile)
+                val (imagePath, originalSize, compressedSize) = withContext(Dispatchers.IO) {
+                    val originalFile = File(path)
+                    val originalSizeStr = if (originalFile.exists()) ImageUtils.getReadableFileSize(originalFile) else "Unknown"
+                    
+                    val compressedFile = ImageUtils.compressImage(context, uri)
+                    val compressedSizeStr = ImageUtils.getReadableFileSize(compressedFile)
+                    
+                    Triple(compressedFile.absolutePath, originalSizeStr, compressedSizeStr)
+                }
                 
                 _uiState.value = _uiState.value.copy(
-                    imagePath = compressedFile.absolutePath,
+                    imagePath = imagePath,
                     originalSize = originalSize,
                     compressedSize = compressedSize
                 )
@@ -69,19 +75,21 @@ class ReportViewModel @Inject constructor(
         val imagePath = state.imagePath ?: return
 
         viewModelScope.launch {
-            val entity = ReportEntity(
-                cityName = weather.cityName,
-                temperature = weather.temperature,
-                condition = weather.condition,
-                humidity = weather.humidity,
-                windSpeed = weather.windSpeed,
-                pressure = weather.pressure,
-                notes = state.notes,
-                imagePath = imagePath,
-                originalSize = state.originalSize,
-                compressedSize = state.compressedSize
-            )
-            repository.saveReport(entity)
+            withContext(Dispatchers.IO) {
+                val entity = ReportEntity(
+                    cityName = weather.cityName,
+                    temperature = weather.temperature,
+                    condition = weather.condition,
+                    humidity = weather.humidity,
+                    windSpeed = weather.windSpeed,
+                    pressure = weather.pressure,
+                    notes = state.notes,
+                    imagePath = imagePath,
+                    originalSize = state.originalSize,
+                    compressedSize = state.compressedSize
+                )
+                repository.saveReport(entity)
+            }
             _uiState.value = _uiState.value.copy(isSaved = true)
         }
     }
